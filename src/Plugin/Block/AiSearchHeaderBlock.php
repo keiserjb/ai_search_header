@@ -68,8 +68,9 @@ class AiSearchHeaderBlock extends BlockBase implements ContainerFactoryPluginInt
       $destination
     );
 
-    // Attach autorun JS (no JS changes needed).
+    // Attach autorun JS and CSS.
     $form['#attached']['library'][] = 'ai_search_header/autorun';
+    $form['#attached']['library'][] = 'ai_search_header/header_search_styles';
 
     // Wrap like core search block: block wrapper + single content.container-inline.
     $build = [

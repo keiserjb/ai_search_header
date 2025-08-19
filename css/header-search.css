@@ -1,0 +1,9 @@
+/**
+ * @file
+ * Styles for the AI Search Header module.
+ */
+
+/* Fix button alignment seam issue */
+.ai-search-header-form .form-actions .form-submit {
+  margin-left: -5px;
+}

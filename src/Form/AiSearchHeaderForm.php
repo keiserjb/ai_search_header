@@ -23,6 +23,7 @@ class AiSearchHeaderForm extends FormBase {
       'search-form',
       'search-block-form',
       'form-row',
+      'ai-search-header-form',
     ];
 
     $form['destination_path'] = [
@@ -71,7 +72,6 @@ class AiSearchHeaderForm extends FormBase {
           'btn',
           'btn-primary',
         ],
-        'style' => 'margin-left:-5px;', // seam fix
       ],
     ];
 
