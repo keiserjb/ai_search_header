@@ -8,10 +8,10 @@ use Drupal\Core\Url;
 use Drupal\Core\Form\FormBase;
 use Drupal\Core\Form\FormStateInterface;
 
-class HeaderAiSearchForm extends FormBase {
+class AiSearchHeaderForm extends FormBase {
 
   public function getFormId(): string {
-    return 'header_ai_search_form';
+    return 'ai_search_header_form';
   }
 
   public function buildForm(array $form, FormStateInterface $form_state, ?string $destination_path = null): array {

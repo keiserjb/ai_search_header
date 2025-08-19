@@ -11,14 +11,14 @@ use Drupal\Core\Form\FormBuilderInterface;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
 /**
- * Provides the Header AI Search Block.
+ * Provides the AI Search Header Block.
  *
  * @Block(
- *   id = "header_ai_search_block",
- *   admin_label = @Translation("Header AI Search")
+ *   id = "ai_search_header_block",
+ *   admin_label = @Translation("AI Search Header")
  * )
  */
-class HeaderAiSearchBlock extends BlockBase implements ContainerFactoryPluginInterface {
+class AiSearchHeaderBlock extends BlockBase implements ContainerFactoryPluginInterface {
 
   public function __construct(
     array $configuration,
@@ -64,7 +64,7 @@ class HeaderAiSearchBlock extends BlockBase implements ContainerFactoryPluginInt
 
     // Build the header search form and pass destination into it.
     $form = $this->formBuilder->getForm(
-      \Drupal\ai_search_header\Form\HeaderAiSearchForm::class,
+      \Drupal\ai_search_header\Form\AiSearchHeaderForm::class,
       $destination
     );
 
