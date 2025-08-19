@@ -20,7 +20,7 @@
 
   Drupal.behaviors.aiSearchHeaderCapture = {
     attach(context) {
-      once('aiSearchHeaderCapture', 'form#header-ai-search-form', context)
+      once('aiSearchHeaderCapture', 'form#ai-search-header-form', context)
         .forEach(function (formEl) {
           $(formEl).on('submit', function () {
             var term = ($(formEl).find('input[name="q"]').val() || '').trim();
