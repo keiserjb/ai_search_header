@@ -1,0 +1,14 @@
+autorun:
+  version: 1.x
+  js:
+    js/autorun.js: {}
+  dependencies:
+    - core/drupal
+    - core/drupalSettings
+    - core/jquery
+    - core/once
+header_search_styles:
+  version: 1.x
+  css:
+    theme:
+      css/header-search.css: {}
