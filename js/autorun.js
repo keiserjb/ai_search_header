@@ -1,92 +1,99 @@
-(function ($, Drupal, drupalSettings, once) {
+(function ($, Backdrop) {
   'use strict';
 
   function getScrollOffset() {
     var extra = 0;
-    var $toolbar = $('#toolbar-bar:visible');
+    var $toolbar = $('#admin-bar:visible, #toolbar:visible');
     if ($toolbar.length) extra += $toolbar.outerHeight();
     var $fixedHeader = $('.site-header.is-fixed:visible, header.fixed:visible');
     if ($fixedHeader.length) extra += $fixedHeader.outerHeight();
     return extra + 12;
   }
+
   function smoothScrollTo(el) {
     if (!el) return;
     var $el = $(el);
     if (!$el.length) return;
     var top = Math.max(0, $el.offset().top - getScrollOffset());
     $('html, body').stop(true).animate({ scrollTop: top }, 250);
-    $el.attr('tabindex', '-1').focus({ preventScroll: true });
+    $el.attr('tabindex', '-1').focus();
   }
 
-  Drupal.behaviors.aiSearchHeaderCapture = {
-    attach(context) {
-      once('aiSearchHeaderCapture', 'form#header-ai-search-form', context)
-        .forEach(function (formEl) {
-          $(formEl).on('submit', function () {
-            var term = ($(formEl).find('input[name="q"]').val() || '').trim();
-            console.log('AI Search Debug (captured from header):', term);
-            try { sessionStorage.setItem('ai_search_prefill', term); } catch (err) {}
-          });
+  Backdrop.behaviors.aiSearchHeaderCapture = {
+    attach: function (context, settings) {
+      $('form#ai-search-header-form', context).once('aiSearchHeaderCapture', function () {
+        var $formEl = $(this);
+        $formEl.on('submit', function () {
+          var term = ($formEl.find('input[name="q"]').val() || '').trim();
+          console.log('AI Search Header: Captured search term:', term);
+          try { 
+            sessionStorage.setItem('ai_search_prefill', term); 
+          } catch (err) {
+            console.warn('AI Search Header: Could not store search term', err);
+          }
         });
+      });
     }
   };
 
-  function executeDrupalAjax(submitBtn, formEl, attempt) {
-    attempt = attempt || 0;
-    if (!submitBtn) return false;
-    var $submit = $(submitBtn);
-    var id = $submit.attr('id');
-    var ajaxObj = (Drupal.ajax && id) ? Drupal.ajax[id] : null;
+  Backdrop.behaviors.aiSearchHeaderAutoRun = {
+    attach: function (context, settings) {
+      $('.search-api-ai-search-block-form', context).once('aiSearchHeaderAutoRun', function () {
+        var formEl = this;
+        var $formEl = $(formEl);
+        
+        var term = null;
+        try { 
+          term = sessionStorage.getItem('ai_search_prefill'); 
+        } catch (e) {
+          console.warn('AI Search Header: Could not read search term from storage', e);
+        }
+        
+        if (!term) return;
 
-    if (ajaxObj) {
-      console.log('AI Search Debug: executing Drupal.ajax for', id);
-      ajaxObj.execute();
-      return true;
-    }
-    if (attempt < 5) {
-      setTimeout(function () { executeDrupalAjax(submitBtn, formEl, attempt + 1); }, 100);
-      return true;
-    }
-    console.warn('AI Search Debug: Ajax never attached; falling back to jQuery submit');
-    $(formEl).trigger('submit');
-    return true;
-  }
+        console.log('AI Search Header: Auto-running with term:', term);
 
-  Drupal.behaviors.aiSearchHeaderAutoRun = {
-    attach(context) {
-      once('aiSearchHeaderAutoRun', '.ai-search-block-form', context)
-        .forEach(function (formEl) {
-          var term = null;
-          try { term = sessionStorage.getItem('ai_search_prefill'); } catch (e) {}
-          if (!term) return;
+        // Scroll to the AI search form
+        smoothScrollTo(formEl);
 
-          console.log('AI Search Debug (injecting into AI block):', term);
+        // Find the query input - Backdrop uses different selectors
+        var input = formEl.querySelector('input[name="query"]');
+        if (!input) {
+          console.warn('AI Search Header: query input not found on AI form.');
+          return;
+        }
+        
+        // Check if already auto-run
+        if ($formEl.data('ai-autorun-done')) {
+          console.log('AI Search Header: Already auto-run, skipping');
+          return;
+        }
+        $formEl.data('ai-autorun-done', true);
 
-          smoothScrollTo(formEl);
+        // Fill in the search term
+        input.value = term;
+        $(input).trigger('input').trigger('change');
+        
+        // Clear from storage
+        try { 
+          sessionStorage.removeItem('ai_search_prefill'); 
+        } catch (e) {
+          console.warn('AI Search Header: Could not clear search term from storage', e);
+        }
 
-          var input =
-            formEl.querySelector('[data-drupal-selector="edit-query"]') ||
-            formEl.querySelector('input[name="query"]');
-          if (!input) {
-            console.warn('AI Search Debug: query input not found on AI form.');
-            return;
-          }
-          if ($(formEl).data('ai-autorun-done')) return;
-          $(formEl).data('ai-autorun-done', true);
-
-          input.value = term;
-          input.dispatchEvent(new Event('input',  { bubbles: true }));
-          input.dispatchEvent(new Event('change', { bubbles: true }));
-          try { sessionStorage.removeItem('ai_search_prefill'); } catch (e) {}
-
-          var submitBtn = formEl.querySelector('[data-drupal-selector="edit-submit"]');
+        // Submit the form
+        setTimeout(function() {
+          var submitBtn = formEl.querySelector('input[type="submit"], button[type="submit"]');
           if (submitBtn) {
-            executeDrupalAjax(submitBtn, formEl, 0);
+            console.log('AI Search Header: Clicking submit button');
+            $(submitBtn).click();
           } else {
-            $(formEl).trigger('submit');
+            console.log('AI Search Header: Triggering form submit');
+            $formEl.trigger('submit');
           }
-        });
+        }, 300);
+      });
     }
   };
 
-})(jQuery, Drupal, drupalSettings, once);
+})(jQuery, Backdrop);
